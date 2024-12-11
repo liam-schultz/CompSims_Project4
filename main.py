@@ -82,13 +82,13 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         return
 
     # initial conditions set by make_initialcond
-    tt = make_initialcond(sigma_0, k_0, x_grid)  # Initial cond. set by make_initialcond
+    tt = make_initialcond(sigma_0, x_0, k_0, x_grid)  # Initial cond. set by make_initialcond
 
     # loop over the desired number of time steps.
     ttplot = np.empty((nspace, ntime))
-    for istep in range(ntime):  ## MAIN LOOP ##
+    for istep in range(ntime):
 
-        # compute new temperature using either method.
+        # compute the next time step using either method.
         tt = A.dot(tt.T)
 
         # record amplitude for plotting
