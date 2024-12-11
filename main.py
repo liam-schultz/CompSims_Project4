@@ -1,3 +1,5 @@
+import numpy as np
+
 
 #adapted from my week 11 advection1d function
 def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wparam=[10, 0, 0.5]):
@@ -11,29 +13,28 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         :return: a tuple (a, x, t) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, and t is a 1d array of the times which were solved for
         """
     # define variables
-    L = params[0]
-    c = params[1]
-    h = L / (nspace - 1)
-    tau_crit = h / c
-    tau = tau_rel * tau_crit
-    coeff = (c * tau) / (2 * h)
+    sigma_0 = wparam[0]
+    x_0 = wparam[1]
+    k_0 = wparam[2]
+    h = length / (nspace - 1)
+    coeff = tau*1j
 
-    x_grid = np.linspace(-L / 2, L / 2, nspace)
+    x_grid = np.linspace(-length / 2, length / 2, nspace)
     t_grid = np.linspace(0, ntime * tau, ntime)
 
     # define amplification matrix
     A = np.zeros((nspace, nspace))
     method = method.lower()
-    if (method == "ftcs"):
+    if method == "ftcs":
         A = make_tridiagonal(nspace, coeff, 1, -coeff)
         # periodic boundary conditions
         A[0, -1] = coeff
         A[-1, 0] = -coeff
-    elif method == "lax":
-        A = make_tridiagonal(nspace, 1 / 2 + coeff, 0, 1 / 2 - coeff)
+    elif method == "crank":
+        #A = make_tridiagonal(nspace, 1 / 2 + coeff, 0, 1 / 2 - coeff)
         # periodic boundary conditions
-        A[0, -1] = 1 / 2 + coeff
-        A[-1, 0] = 1 / 2 - coeff
+        #A[0, -1] = 1 / 2 + coeff
+        #A[-1, 0] = 1 / 2 - coeff
     else:
         return
 
