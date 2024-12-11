@@ -49,7 +49,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         :param ntime: the number of time steps
         :param tau_rel: the time step expressed as a multiple of the critical time step
         :param params: a tuple of physical parameters for the system (L, c) where L is the length of the medium and c is the wavespeed in the medium
-        :return: a tuple (a, x, t) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, and t is a 1d array of the times which were solved for
+        :return: a tuple (a, x, t, p) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, t is a 1d array of the times which were solved for, and p is the total probability at each time step
         """
     # define variables
     sigma_0 = wparam[0]
@@ -95,4 +95,19 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         # record amplitude for plotting
         ttplot[:, istep] = np.copy(tt)  # record tt(i) for plotting
 
-    return ttplot, x_grid, t_grid
+    total_prob = np.zeros((ntime))
+    total_prob[:] = np.sum(ttplot*np.conjugate(ttplot), axis=0)
+
+    return ttplot, x_grid, t_grid, total_prob
+
+def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
+    """
+
+    :param ttplot:
+    :param x_grid:
+    :param t_grid:
+    :param t:
+    :param graph:
+    :param file:
+    :return:
+    """
