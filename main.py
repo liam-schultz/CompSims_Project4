@@ -1,16 +1,19 @@
 import numpy as np
 
 #adapted from my week 11 make_tridagonal
-def make_tridiagonal(N, b, d, a):
+def make_periodic_tridiagonal(N, b, d, a):
     """
-    Makes a tridiagonal NxN matrix with the elements b, d, and a from bottom left to top right
+    Makes a tridiagonal NxN matrix with the elements b, d, and a from bottom left to top right including wrap around for periodic boundary conditions
     :param N: the size of the matrix to create
-    :param b: the value of the elements immediately to the left of the main diagonal
+    :param b: the value of the elements immediately to the left of the main diagonal (including [0,-1])
     :param d: the values on the main diagonal
-    :param a: the value of the elements immediately to the right of the main diagonal
+    :param a: the value of the elements immediately to the right of the main diagonal (including [-1,0])
     :return: the tridiagonal matrix
     """
-    return d*np.eye(N)+b*np.eye(N, k=-1)+a*np.eye(N, k=1)
+    tri_diag = d*np.eye(N)+b*np.eye(N, k=-1)+a*np.eye(N, k=1)
+    tri_diag[0, -1] = b
+    tri_diag[-1, 0] = a
+    return tri_diag
 
 #copied from my week 11 submission
 def make_initialcond(sigma_0, k_0, spatial_grid):
