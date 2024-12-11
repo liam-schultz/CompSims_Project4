@@ -62,17 +62,17 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
     # define amplification matrix
     A = np.zeros((nspace, nspace))
-    #define the discrete hamiltonian matrix
+    #define the discrete hamiltonian matrix (see eqn 9.31 NM4P) with h bar = 1, m = 1/2
     H = make_H(nspace, 1/h ** 2, -2/h**2, 1/h**2, potential)
 
     if method == "ftcs":
-        A = np.eye(nspace)-(1j*tau*H)
+        #see the matrix in eqn 9.32 NM4P with h bar = 1
+        coeff = 1j*tau
+        A = np.eye(nspace)-(coeff*H)
     elif method == "crank":
-
-        #A = make_tridiagonal(nspace, 1 / 2 + coeff, 0, 1 / 2 - coeff)
-        # periodic boundary conditions
-        #A[0, -1] = 1 / 2 + coeff
-        #A[-1, 0] = 1 / 2 - coeff
+        #see the matrix in eqn 9.40 NM4P with h bar = 1
+        coeff = (1j*tau)/2
+        A = np.matmul(np.linalg.inv(np.eye(nspace) + coeff*H), np.eye(nspace) - coeff*H)
     else:
         return
 
