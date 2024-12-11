@@ -69,16 +69,16 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         #see the matrix in eqn 9.32 NM4P with h bar = 1
         coeff = 1j*tau
         A = np.eye(nspace)-(coeff*H)
+        # determine solution stability
+        if spectral_radius(A) > 1:
+            print("Warning: solution will be unstable")
+
     elif method == "crank":
         #see the matrix in eqn 9.40 NM4P with h bar = 1
         coeff = (1j*tau)/2
         A = np.matmul(np.linalg.inv(np.eye(nspace) + coeff*H), np.eye(nspace) - coeff*H)
     else:
         return
-
-    # determine solution stability
-    if spectral_radius(A) > 1:
-        print("Warning: solution will be unstable")
 
     # initial conditions set by make_initialcond
     tt = make_initialcond(0.2, 35, x_grid)  # Initial cond. set by make_initialcond
