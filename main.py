@@ -19,15 +19,16 @@ def make_H(N, b, d, a, potential):
     return H
 
 #copied from my week 11 submission
-def make_initialcond(sigma_0, k_0, spatial_grid):
+def make_initialcond(sigma_0, x_0, k_0, spatial_grid):
     """
-    Creates the initial conditions as a wave packet with a form given in the assignment 10 description
-    :param sigma_0: an adjustable parameter in the wave packet equation
-    :param k_0: another adjustable parameter in the wave packet equation
+    Creates the initial conditions as a wave packet with a form given in the project 4 description
+    :param sigma_0: the packet width of the wave packet
+    :param x_0 the position at which the wave packet is centered on
+    :param k_0: the average wave number of the wave packet
     :param spatial_grid: the grid of x values to set the initial conditions of
     :return: an array of amplitudes for each position given by the spatial_grid parameter
     """
-    return np.exp(-(spatial_grid**2/(2*sigma_0**2)))*np.cos(k_0*spatial_grid)
+    return (1/(np.sqrt(sigma_0*np.sqrt(np.pi))))*np.exp(1j*k_0*spatial_grid)*np.exp((-(spatial_grid-x_0)**2)/(2*sigma_0**2))
 
 #copied from my week 11 submission
 def spectral_radius(A):
@@ -81,7 +82,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         return
 
     # initial conditions set by make_initialcond
-    tt = make_initialcond(0.2, 35, x_grid)  # Initial cond. set by make_initialcond
+    tt = make_initialcond(sigma_0, k_0, x_grid)  # Initial cond. set by make_initialcond
 
     # loop over the desired number of time steps.
     ttplot = np.empty((nspace, ntime))
