@@ -1,19 +1,22 @@
 import numpy as np
 
 #adapted from my week 11 make_tridagonal
-def make_periodic_tridiagonal(N, b, d, a):
+def make_H(N, b, d, a, potential):
     """
     Makes a tridiagonal NxN matrix with the elements b, d, and a from bottom left to top right including wrap around for periodic boundary conditions
     :param N: the size of the matrix to create
     :param b: the value of the elements immediately to the left of the main diagonal (including [0,-1])
     :param d: the values on the main diagonal
     :param a: the value of the elements immediately to the right of the main diagonal (including [-1,0])
-    :return: the tridiagonal matrix
+    :param potential: the points in space to set the potential to 1
+    :return: the matrix H (the periodic discrete hamiltonian)
     """
-    tri_diag = d*np.eye(N)+b*np.eye(N, k=-1)+a*np.eye(N, k=1)
-    tri_diag[0, -1] = b
-    tri_diag[-1, 0] = a
-    return tri_diag
+    H = d*np.eye(N)+b*np.eye(N, k=-1)+a*np.eye(N, k=1)
+    H[0, -1] = b
+    H[-1, 0] = a
+    for i in potential:
+        H[:, i] += 1
+    return H
 
 #copied from my week 11 submission
 def make_initialcond(sigma_0, k_0, spatial_grid):
@@ -52,20 +55,20 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
     x_0 = wparam[1]
     k_0 = wparam[2]
     h = length / (nspace - 1)
-    coeff = tau*1j
 
-    x_grid = np.linspace(-length / 2, length / 2, nspace)
+    #define the spacial and temporal grids
+    x_grid = np.linspace(-length/2, length/2, nspace)
     t_grid = np.linspace(0, ntime * tau, ntime)
 
     # define amplification matrix
     A = np.zeros((nspace, nspace))
-    method = method.lower()
+    #define the discrete hamiltonian matrix
+    H = make_H(nspace, 1/h ** 2, -2/h**2, 1/h**2, potential)
+
     if method == "ftcs":
-        A = make_tridiagonal(nspace, coeff, 1, -coeff)
-        # periodic boundary conditions
-        A[0, -1] = coeff
-        A[-1, 0] = -coeff
+        A = np.eye(nspace)-(1j*tau*H)
     elif method == "crank":
+
         #A = make_tridiagonal(nspace, 1 / 2 + coeff, 0, 1 / 2 - coeff)
         # periodic boundary conditions
         #A[0, -1] = 1 / 2 + coeff
