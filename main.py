@@ -1,21 +1,21 @@
 import numpy as np
 
 #adapted from my week 11 make_tridagonal
-def make_H(N, b, d, a, potential):
+def make_H(N, b, d, a, V):
     """
     Makes a tridiagonal NxN matrix with the elements b, d, and a from bottom left to top right including wrap around for periodic boundary conditions
     :param N: the size of the matrix to create
     :param b: the value of the elements immediately to the left of the main diagonal (including [0,-1])
     :param d: the values on the main diagonal
     :param a: the value of the elements immediately to the right of the main diagonal (including [-1,0])
-    :param potential: the points in space to set the potential to 1
+    :param V: the points in space to set the potential to 1
     :return: the matrix H (the periodic discrete hamiltonian)
     """
     H = d*np.eye(N)+b*np.eye(N, k=-1)+a*np.eye(N, k=1)
     H[0, -1] = b
     H[-1, 0] = a
-    for i in potential:
-        H[:, i] += 1
+    for i in V:
+        H[i, i] += 1
     return H
 
 #copied from my week 11 submission
@@ -64,7 +64,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
     # define amplification matrix
     A = np.zeros((nspace, nspace))
     #define the discrete hamiltonian matrix (see eqn 9.31 NM4P) with h bar = 1, m = 1/2
-    H = make_H(nspace, 1/h ** 2, -2/h**2, 1/h**2, potential)
+    H = make_H(nspace, 1/h**2, -2/h**2, 1/h**2, potential)
 
     if method == "ftcs":
         #see the matrix in eqn 9.32 NM4P with h bar = 1
