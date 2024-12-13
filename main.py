@@ -177,14 +177,19 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
     else:
         ind += 1
 
+    fig, ax = plt.subplots()
     if graph == "psi":
-        plt.plot(x_grid, np.real(ttplot[:, ind]))
-        plt.show()
+        ax.plot(x_grid, np.real(ttplot[:, ind]))
     elif graph == "prob":
-        plt.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
-        plt.show()
+        ax.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
 
-eqn = sch_eqn(800, 500, 1.0, length = 100, method="crank")
+    fig.show()
+    if file != "":
+        if file.split(".")[-1] != "png":
+            file += ".png"
+        fig.savefig(file)
+
+eqn = sch_eqn(80, 500, 1.0, length = 100, method="crank")
 if eqn is not None:
     ttplot, x_grid, t_grid, prob = eqn
 
@@ -192,7 +197,7 @@ if eqn is not None:
     print(prob)
 
     #test initial condition (should roughly recreate Fig 9.5 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0)
+    sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5.png")
 
     #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob")
+    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6")
