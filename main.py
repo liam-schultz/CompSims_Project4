@@ -194,7 +194,10 @@ if eqn is not None:
     ttplot, x_grid, t_grid, prob = eqn
 
     #check that probability is conserved
-    print(prob)
+    if (all([np.abs(i - prob[0]) < 1e-10 for i in prob])):
+        print("Probability is conserved")
+    else:
+        print("probability is not conserved")
 
     #test initial condition (should roughly recreate Fig 9.5 in NM4P)
     sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5.png")
