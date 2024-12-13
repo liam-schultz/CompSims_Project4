@@ -23,8 +23,8 @@ class Animator:
         self.x_grid = x_grid
         self.lower_x_bound = np.min(x_grid)
         self.upper_x_bound = np.max(x_grid)
-        self.lower_y_bound = -2
-        self.upper_y_bound = 2
+        self.lower_y_bound = -1
+        self.upper_y_bound = 1
         self.text = self.ax.text(self.lower_x_bound + 0.2, self.upper_y_bound-0.2, [])
 
     def init(self):
@@ -146,7 +146,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
     # loop over the desired number of time steps.
     ttplot = np.empty((nspace, ntime), dtype=complex)
-    ttplot[:, 0] = tt
+    ttplot[:, 0] = np.copy(tt)
     for istep in range(1, ntime):
 
         # compute the next time step using either method.
@@ -160,7 +160,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
     return ttplot, x_grid, t_grid, total_prob
 
-def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
+def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
     """
     :param ttplot:
     :param x_grid:
@@ -168,28 +168,48 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
     :param t:
     :param graph:
     :param file:
+    :param animate:
     :return:
     """
 
-    ind = np.searchsorted(t_grid, t)
-    if abs(t_grid[ind-1] - t) < abs(t_grid[ind+1] - t):
-        ind -= 1
+    if animate:
+
+        if graph == "psi":
+            ylabel = "psi"
+        elif graph == "prob":
+            ylabel = "prob"
+        animator = Animator(x_grid, "placeholder", "Position", ylabel)
+
+        if graph == "psi":
+            animation = animator.animate(t_grid, np.real(ttplot))
+        elif graph == "prob":
+            animation = animator.animate(t_grid, np.real(ttplot*np.conjugate(ttplot)))
+        writer = PillowWriter(fps=20)
+        animation.save("animation.gif", writer)
+
     else:
-        ind += 1
+        #find the index of the time to plot
+        ind = np.searchsorted(t_grid, t)
+        if abs(t_grid[ind-1] - t) < abs(t_grid[ind+1] - t):
+            ind -= 1
+        else:
+            ind += 1
 
-    fig, ax = plt.subplots()
-    if graph == "psi":
-        ax.plot(x_grid, np.real(ttplot[:, ind]))
-    elif graph == "prob":
-        ax.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
+        #create graph at time t
+        fig, ax = plt.subplots()
+        if graph == "psi":
+            ax.plot(x_grid, np.real(ttplot[:, ind]))
+        elif graph == "prob":
+            ax.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
 
-    fig.show()
-    if file != "":
-        if file.split(".")[-1] != "png":
-            file += ".png"
-        fig.savefig(file)
+        #display and save plot
+        fig.show()
+        if file != "":
+            if file.split(".")[-1] != "png":
+                file += ".png"
+            fig.savefig(file)
 
-eqn = sch_eqn(80, 500, 1.0, length = 100, method="crank")
+eqn = sch_eqn(80, 500, 1.0, length = 100, method="crank", potential=[25, 50])
 if eqn is not None:
     ttplot, x_grid, t_grid, prob = eqn
 
@@ -204,3 +224,6 @@ if eqn is not None:
 
     #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
     sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6")
+
+    #test psi animation to observe transmission and reflection of the wave
+    sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", animate=True)
