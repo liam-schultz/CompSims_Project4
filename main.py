@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 #adapted from my week 11 make_tridagonal
 def make_H(N, b, d, a, V):
@@ -102,7 +103,6 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
 def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
     """
-
     :param ttplot:
     :param x_grid:
     :param t_grid:
@@ -111,3 +111,14 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
     :param file:
     :return:
     """
+
+    ind = np.searchsorted(t, t_grid)
+    if abs(t_grid[ind-1] - t) < abs(t_grid[ind+1] - t):
+        ind -= 1
+    else:
+        ind += 1
+
+    plt.plot(x_grid, ttplot[ind, :])
+    plt.show()
+    
+
