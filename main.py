@@ -65,30 +65,31 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
     # define amplification matrix
     A = np.zeros((nspace, nspace))
     #define the discrete hamiltonian matrix (see eqn 9.31 NM4P) with h bar = 1, m = 1/2
-    H = make_H(nspace, 1/h**2, -2/h**2, 1/h**2, potential)
+    H = make_H(nspace, -1/h**2, 2/h**2, -1/h**2, potential)
 
     if method == "ftcs":
-        #see the matrix in eqn 9.32 NM4P with h bar = 1
-        coeff = 1j*tau
-        A = np.eye(nspace)-(coeff*H)
         # determine solution stability
         if spectral_radius(A) > 1:
             print("Warning: solution will be unstable")
-            return False
+            return None
+        #see the matrix in eqn 9.32 NM4P with h bar = 1
+        coeff = 1j*tau
+        A = np.eye(nspace)-(coeff*H)
 
     elif method == "crank":
         #see the matrix in eqn 9.40 NM4P with h bar = 1
         coeff = (1j*tau)/2
         A = np.matmul(np.linalg.inv(np.eye(nspace) + coeff*H), np.eye(nspace) - coeff*H)
     else:
-        return False
+        return None
 
     # initial conditions set by make_initialcond
     tt = make_initialcond(sigma_0, x_0, k_0, x_grid)  # Initial cond. set by make_initialcond
 
     # loop over the desired number of time steps.
     ttplot = np.empty((nspace, ntime), dtype=complex)
-    for istep in range(ntime):
+    ttplot[:, 0] = tt
+    for istep in range(1, ntime):
 
         # compute the next time step using either method.
         tt = A.dot(tt.T)
@@ -123,14 +124,17 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
         plt.show()
     elif graph == "prob":
         plt.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
+        plt.show()
 
-eqn = sch_eqn(30, 500, 1.0, length = 100, method="crank")
-if not eqn:
-    print("Solution is unstable")
-else:
-    #test initial condition
+eqn = sch_eqn(800, 500, 1.0, length = 100, method="crank")
+if eqn is not None:
     ttplot, x_grid, t_grid, prob = eqn
+
+    #check that probability is conserved
+    print(prob)
+
+    #test initial condition (should roughly recreate Fig 9.5 in NM4P)
     sch_plot(ttplot, x_grid, t_grid, 0)
 
-
-
+    #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
+    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob")
