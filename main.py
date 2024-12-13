@@ -1,5 +1,63 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
+
+#Copied from week 11 submission
+class Animator:
+    """
+    I wrapped this in a class because it feels wrong otherwise, it just encapsulates all the animation variables and functions
+    """
+    def __init__(self, x_grid, title, x_label, y_label):
+        """
+        constructor for the animator class
+        :param x_grid: the x grid of the plot
+        :param title: the title of the plot the class produces
+        :param x_label: the x-axis label
+        :param y_label: the y-axis label
+        """
+        self.title = title
+        self.x_label = x_label
+        self.y_label = y_label
+        self.fig, self.ax = plt.subplots()
+        self.line, = self.ax.plot([], [], color='black')
+        self.x_grid = x_grid
+        self.lower_x_bound = np.min(x_grid)
+        self.upper_x_bound = np.max(x_grid)
+        self.lower_y_bound = -2
+        self.upper_y_bound = 2
+        self.text = self.ax.text(self.lower_x_bound + 0.2, self.upper_y_bound-0.2, [])
+
+    def init(self):
+        """
+        initializes the plot by setting its axes and title, called at the start of the animation
+        :return: the initialized plot
+        """
+        self.ax.set_xlim(self.lower_x_bound, self.upper_x_bound)
+        self.ax.set_ylim(self.lower_y_bound, self.upper_y_bound)
+        self.ax.set_title(self.title)
+        self.ax.set_xlabel(self.x_label)
+        self.ax.set_ylabel(self.y_label)
+        return self.line,
+
+    #data: (t, amplitude)
+    def update(self, data):
+        """
+        draws each frame in the animation
+        :param data: a tuple containing two elements, the time, and the amplitude of the wave at each point on the x-axis
+        :return: the plot of the drawn frame
+        """
+        self.line.set_data(x_grid, data[1])
+        self.text.set_text(f"t = {data[0]}s")
+        return self.text,
+
+    def animate(self, time, amplitude):
+        """
+        constructs the data array from time and theta arrays. Also creates the animation
+        :param time: the time points of the simulation
+        :param amplitude: a 2d array of the amplitudes of the wave at each time
+        :return: the finished animation
+        """
+        return FuncAnimation(self.fig, self.update, frames=[(time[i], amplitude[:, i]) for i in range(len(time))], init_func=self.init, interval=1)
 
 #adapted from my week 11 make_tridagonal
 def make_H(N, b, d, a, V):
