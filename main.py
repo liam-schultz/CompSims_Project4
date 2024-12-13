@@ -87,7 +87,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
     tt = make_initialcond(sigma_0, x_0, k_0, x_grid)  # Initial cond. set by make_initialcond
 
     # loop over the desired number of time steps.
-    ttplot = np.empty((nspace, ntime))
+    ttplot = np.empty((nspace, ntime), dtype=complex)
     for istep in range(ntime):
 
         # compute the next time step using either method.
@@ -96,7 +96,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         # record amplitude for plotting
         ttplot[:, istep] = np.copy(tt)  # record tt(i) for plotting
 
-    total_prob = np.zeros((ntime))
+    total_prob = np.zeros((ntime), dtype=complex)
     total_prob[:] = np.sum(ttplot*np.conjugate(ttplot), axis=0)
 
     return ttplot, x_grid, t_grid, total_prob
@@ -112,13 +112,25 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file=""):
     :return:
     """
 
-    ind = np.searchsorted(t, t_grid)
+    ind = np.searchsorted(t_grid, t)
     if abs(t_grid[ind-1] - t) < abs(t_grid[ind+1] - t):
         ind -= 1
     else:
         ind += 1
 
-    plt.plot(x_grid, ttplot[ind, :])
-    plt.show()
-    
+    if graph == "psi":
+        plt.plot(x_grid, np.real(ttplot[:, ind]))
+        plt.show()
+    elif graph == "prob":
+        plt.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
+
+eqn = sch_eqn(30, 500, 1.0, length = 100, method="crank")
+if not eqn:
+    print("Solution is unstable")
+else:
+    #test initial condition
+    ttplot, x_grid, t_grid, prob = eqn
+    sch_plot(ttplot, x_grid, t_grid, 0)
+
+
 
