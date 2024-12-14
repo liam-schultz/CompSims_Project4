@@ -102,12 +102,14 @@ def spectral_radius(A):
 #adapted from my week 11 advection1d function
 def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wparam=[10, 0, 0.5]):
     """
-        Solves the 1d advection equation
-        :param method: the solution method to use
-        :param nspace: the number of divisions in the spatial grid
+        Solves the 1d schrodinger equation
+        :param nspace: the number of points in the spatial grid
         :param ntime: the number of time steps
-        :param tau_rel: the time step expressed as a multiple of the critical time step
-        :param params: a tuple of physical parameters for the system (L, c) where L is the length of the medium and c is the wavespeed in the medium
+        :param tau: the time step to use in the solution
+        :param method: the solution method to use
+        :param length: the length of the spatial grid (will range from -length to length)
+        :param potential: a 1D array giving the index values to set the potential to 1 at
+        :param wparam: a tuple of parameters to set the initial condition (sigma_0, x_0, k_0)
         :return: a tuple (a, x, t, p) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, t is a 1d array of the times which were solved for, and p is the total probability at each time step
         """
     # define variables
@@ -162,14 +164,15 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
 def sch_plot(ttplot, x_grid, t_grid, t=0, graph="psi", file="", animate=False):
     """
-    :param ttplot:
-    :param x_grid:
-    :param t_grid:
-    :param t:
-    :param graph:
-    :param file:
-    :param animate:
-    :return:
+    Plots solutions to the schrodinger equation
+    :param ttplot: the 2d array of amplitudes at each time
+    :param x_grid: the 1d array of x values for the domain
+    :param t_grid: the 1d array of time values for the range
+    :param t: the time to plot the amplitude at (ignored if animate is set to True)
+    :param graph: the type of graph to produce (psi for the real part of psi, prob for the probability density of phi)
+    :param file: the file name to save the plot or animation to (won't save if left blank)
+    :param animate: whether to animate the function (t will be ignored if set to True)
+    :return: None
     """
 
     #create animation
@@ -182,7 +185,7 @@ def sch_plot(ttplot, x_grid, t_grid, t=0, graph="psi", file="", animate=False):
             y_bound = np.max(np.real(ttplot))
         elif graph == "prob":
             ylabel = "$\\psi(x, t={t_grid[ind]})\\psi^*(x, t={t_grid[ind]})$"
-            title = "Animation of the Probability Distribution of a Solution to Schrodinger's Equation"
+            title = "Animation of the Probability Density of a Solution to Schrodinger's Equation"
             y_bound = np.max(np.real(ttplot*np.conjugate(ttplot)))
         else:
             return None
@@ -217,7 +220,7 @@ def sch_plot(ttplot, x_grid, t_grid, t=0, graph="psi", file="", animate=False):
             ax.set_ylabel(f"$\\psi(x, t={t_grid[ind]})$")
             ax.plot(x_grid, np.real(ttplot[:, ind]))
         elif graph == "prob":
-            ax.set_title(f"Probability Distribution for a Solution of Schrodinger's Equation at t={t_grid[ind]}")
+            ax.set_title(f"Probability Density for a Solution of Schrodinger's Equation at t={t_grid[ind]}")
             ax.set_ylabel(f"$\\psi(x, t={t_grid[ind]})\\psi^*(x, t={t_grid[ind]})$")
             ax.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
 
@@ -232,7 +235,7 @@ def test():
     """
 
     """
-    eqn = sch_eqn(200, 500, 0.1, length = 200, method="ftcs", potential=[0, -1])
+    eqn = sch_eqn(200, 500, 0.1, length = 200, method="crank", potential=[0, -1])
     if eqn is not None:
         ttplot, x_grid, t_grid, prob = eqn
 
@@ -243,15 +246,15 @@ def test():
             print("Probability is not conserved")
 
         #test initial condition (should roughly recreate Fig 9.5 in NM4P)
-        sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_ftcs.png")
+        sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_crank.png")
 
         #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
-        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_ftcs")
+        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_crank")
 
         #test psi animation to observe transmission and reflection of the wave
-        sch_plot(ttplot, x_grid, t_grid, graph="psi", file="Schultz_Liam_Psi_Animation_ftcs.gif", animate=True)
+        sch_plot(ttplot, x_grid, t_grid, graph="psi", file="Schultz_Liam_Psi_Animation_crank.gif", animate=True)
 
         #same with probability density
-        sch_plot(ttplot, x_grid, t_grid, graph="prob", file="Schultz_Liam_Prob_Animation_ftcs", animate=True)
+        sch_plot(ttplot, x_grid, t_grid, graph="prob", file="Schultz_Liam_Prob_Animation_crank", animate=True)
 
 test()
