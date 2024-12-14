@@ -7,7 +7,7 @@ class Animator:
     """
     I wrapped this in a class because it feels wrong otherwise, it just encapsulates all the animation variables and functions
     """
-    def __init__(self, x_grid, title, x_label, y_label):
+    def __init__(self, x_grid, title, x_label, y_label, y_bound=1):
         """
         constructor for the animator class
         :param x_grid: the x grid of the plot
@@ -23,8 +23,8 @@ class Animator:
         self.x_grid = x_grid
         self.lower_x_bound = np.min(x_grid)
         self.upper_x_bound = np.max(x_grid)
-        self.lower_y_bound = -1
-        self.upper_y_bound = 1
+        self.lower_y_bound = -y_bound
+        self.upper_y_bound = y_bound
         self.text = self.ax.text(self.lower_x_bound + 0.2, self.upper_y_bound-0.2, [])
 
     def init(self):
@@ -172,28 +172,36 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
     :return:
     """
 
+    #create animation
     if animate:
 
         if graph == "psi":
             ylabel = "psi"
+            y_bound = np.max(np.real(ttplot))
         elif graph == "prob":
             ylabel = "prob"
-        animator = Animator(x_grid, "placeholder", "Position", ylabel)
+            y_bound = np.max(np.real(ttplot*np.conjugate(ttplot)))
+        else:
+            return None
+
+        animator = Animator(x_grid, "placeholder", "Position", ylabel, y_bound=y_bound)
 
         if graph == "psi":
             animation = animator.animate(t_grid, np.real(ttplot))
         elif graph == "prob":
             animation = animator.animate(t_grid, np.real(ttplot*np.conjugate(ttplot)))
-        writer = PillowWriter(fps=20)
-        animation.save("animation.gif", writer)
 
-    else:
+        if file != "":
+            if file.split(".")[-1] != "gif":
+                file += ".gif"
+            writer = PillowWriter(fps=20)
+            animation.save(file, writer)
+
+    else: #plot at specific time
         #find the index of the time to plot
         ind = np.searchsorted(t_grid, t)
-        if abs(t_grid[ind-1] - t) < abs(t_grid[ind+1] - t):
+        if ind >= len(t_grid) or abs(t_grid[ind-1] - t) < abs(t_grid[ind] - t):
             ind -= 1
-        else:
-            ind += 1
 
         #create graph at time t
         fig, ax = plt.subplots()
@@ -209,7 +217,7 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
                 file += ".png"
             fig.savefig(file)
 
-eqn = sch_eqn(80, 500, 1.0, length = 100, method="crank", potential=[25, 50])
+eqn = sch_eqn(200, 500, 1.0, length = 200, method="crank", potential=[0, -1])
 if eqn is not None:
     ttplot, x_grid, t_grid, prob = eqn
 
@@ -217,13 +225,16 @@ if eqn is not None:
     if (all([np.abs(i - prob[0]) < 1e-10 for i in prob])):
         print("Probability is conserved")
     else:
-        print("probability is not conserved")
+        print("Probability is not conserved")
 
     #test initial condition (should roughly recreate Fig 9.5 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5.png")
+    sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_ftcs.png")
 
     #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6")
+    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_ftcs")
 
     #test psi animation to observe transmission and reflection of the wave
-    sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", animate=True)
+    #sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", file="Schultz_Liam_Psi_Animation.gif", animate=True)
+
+    #same with probability density
+    #sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Prob_Animation.gif", animate=True)
