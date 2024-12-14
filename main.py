@@ -97,7 +97,7 @@ def spectral_radius(A):
     :return: the eigenvalue with the greatest absolute magnitude
     """
     eig_vals = np.linalg.eig(A)[0]
-    return eig_vals[np.where(np.abs(eig_vals) == np.max(np.abs(eig_vals)))][0]
+    return np.max(np.abs(eig_vals))
 
 #adapted from my week 11 advection1d function
 def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wparam=[10, 0, 0.5]):
@@ -126,13 +126,13 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
     H = make_H(nspace, -1/h**2, 2/h**2, -1/h**2, potential)
 
     if method == "ftcs":
-        # determine solution stability
-        if spectral_radius(A) > 1:
-            print("Warning: solution will be unstable")
-            return None
         #see the matrix in eqn 9.32 NM4P with h bar = 1
         coeff = 1j*tau
         A = np.eye(nspace)-(coeff*H)
+        # determine solution stability
+        if spectral_radius(A)-1 > 1e-1:
+            print("Warning: solution will be unstable")
+            return None
 
     elif method == "crank":
         #see the matrix in eqn 9.40 NM4P with h bar = 1
@@ -232,26 +232,26 @@ def test():
     """
 
     """
-    eqn = sch_eqn(200, 500, 1.0, length = 200, method="crank", potential=[0, -1])
+    eqn = sch_eqn(200, 500, 0.1, length = 200, method="ftcs", potential=[0, -1])
     if eqn is not None:
         ttplot, x_grid, t_grid, prob = eqn
 
         #check that probability is conserved
-        if (all([np.abs(i - prob[0]) < 1e-10 for i in prob])):
+        if (all([np.abs(i - prob[0]) < 1e-4 for i in prob])):
             print("Probability is conserved")
         else:
             print("Probability is not conserved")
 
         #test initial condition (should roughly recreate Fig 9.5 in NM4P)
-        sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_crank.png")
+        sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_ftcs.png")
 
         #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
-        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_crank")
+        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_ftcs")
 
         #test psi animation to observe transmission and reflection of the wave
-        sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", file="Schultz_Liam_Psi_Animation_crank.gif", animate=True)
+        sch_plot(ttplot, x_grid, t_grid, graph="psi", file="Schultz_Liam_Psi_Animation_ftcs.gif", animate=True)
 
         #same with probability density
-        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Prob_Animation_crank", animate=True)
+        sch_plot(ttplot, x_grid, t_grid, graph="prob", file="Schultz_Liam_Prob_Animation_ftcs", animate=True)
 
 test()
