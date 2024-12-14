@@ -110,7 +110,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
         :param length: the length of the spatial grid (will range from -length to length)
         :param potential: a 1D array giving the index values to set the potential to 1 at
         :param wparam: a tuple of parameters to set the initial condition (sigma_0, x_0, k_0)
-        :return: a tuple (a, x, t, p) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, t is a 1d array of the times which were solved for, and p is the total probability at each time step
+        :return: a tuple (a, x, t, p) where a is a 2d array of solutions for all x at each time, x is a 1d array of the points on the spatial grid, t is a 1d array of the times which were solved for, and p is the total probability at each time step. Returns None if solution fails.
         """
     # define variables
     sigma_0 = wparam[0]
@@ -233,7 +233,7 @@ def sch_plot(ttplot, x_grid, t_grid, t=0, graph="psi", file="", animate=False):
 
 def test():
     """
-
+    A function for testing the sch_eqn, and sch_plot
     """
     eqn = sch_eqn(200, 500, 0.1, length = 200, method="crank", potential=[0, -1])
     if eqn is not None:
