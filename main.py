@@ -25,7 +25,7 @@ class Animator:
         self.upper_x_bound = np.max(x_grid)
         self.lower_y_bound = -y_bound
         self.upper_y_bound = y_bound
-        self.text = self.ax.text(self.lower_x_bound + 0.2, self.upper_y_bound-0.2, [])
+        self.text = self.ax.text(self.lower_x_bound + 0.02*(self.upper_x_bound-self.lower_x_bound), self.upper_y_bound-0.04*(self.upper_y_bound-self.lower_y_bound), [])
 
     def init(self):
         """
@@ -46,7 +46,7 @@ class Animator:
         :param data: a tuple containing two elements, the time, and the amplitude of the wave at each point on the x-axis
         :return: the plot of the drawn frame
         """
-        self.line.set_data(x_grid, data[1])
+        self.line.set_data(self.x_grid, data[1])
         self.text.set_text(f"t = {data[0]}s")
         return self.text,
 
@@ -160,7 +160,7 @@ def sch_eqn(nspace, ntime, tau, method="ftcs", length = 200, potential = [], wpa
 
     return ttplot, x_grid, t_grid, total_prob
 
-def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
+def sch_plot(ttplot, x_grid, t_grid, t=0, graph="psi", file="", animate=False):
     """
     :param ttplot:
     :param x_grid:
@@ -175,22 +175,28 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
     #create animation
     if animate:
 
+        #set parameters based on what is being animated
         if graph == "psi":
-            ylabel = "psi"
+            ylabel = "$\\psi(x, t)$"
+            title = "Animation of a Solution to Schrodinger's Equation"
             y_bound = np.max(np.real(ttplot))
         elif graph == "prob":
-            ylabel = "prob"
+            ylabel = "$\\psi(x, t={t_grid[ind]})\\psi^*(x, t={t_grid[ind]})$"
+            title = "Animation of the Probability Distribution of a Solution to Schrodinger's Equation"
             y_bound = np.max(np.real(ttplot*np.conjugate(ttplot)))
         else:
             return None
 
-        animator = Animator(x_grid, "placeholder", "Position", ylabel, y_bound=y_bound)
+        #initialize animator
+        animator = Animator(x_grid, title, "Position", ylabel, y_bound=y_bound)
 
+        #create the animation
         if graph == "psi":
             animation = animator.animate(t_grid, np.real(ttplot))
         elif graph == "prob":
             animation = animator.animate(t_grid, np.real(ttplot*np.conjugate(ttplot)))
 
+        #save the animation
         if file != "":
             if file.split(".")[-1] != "gif":
                 file += ".gif"
@@ -205,9 +211,14 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
 
         #create graph at time t
         fig, ax = plt.subplots()
+        ax.set_xlabel("Position")
         if graph == "psi":
+            ax.set_title(f"Solution of Schrodinger's Equation at t={t_grid[ind]}")
+            ax.set_ylabel(f"$\\psi(x, t={t_grid[ind]})$")
             ax.plot(x_grid, np.real(ttplot[:, ind]))
         elif graph == "prob":
+            ax.set_title(f"Probability Distribution for a Solution of Schrodinger's Equation at t={t_grid[ind]}")
+            ax.set_ylabel(f"$\\psi(x, t={t_grid[ind]})\\psi^*(x, t={t_grid[ind]})$")
             ax.plot(x_grid, np.real(ttplot[:, ind]*np.conjugate(ttplot[:, ind])))
 
         #display and save plot
@@ -217,24 +228,30 @@ def sch_plot(ttplot, x_grid, t_grid, t, graph="psi", file="", animate=False):
                 file += ".png"
             fig.savefig(file)
 
-eqn = sch_eqn(200, 500, 1.0, length = 200, method="crank", potential=[0, -1])
-if eqn is not None:
-    ttplot, x_grid, t_grid, prob = eqn
+def test():
+    """
 
-    #check that probability is conserved
-    if (all([np.abs(i - prob[0]) < 1e-10 for i in prob])):
-        print("Probability is conserved")
-    else:
-        print("Probability is not conserved")
+    """
+    eqn = sch_eqn(200, 500, 1.0, length = 200, method="crank", potential=[0, -1])
+    if eqn is not None:
+        ttplot, x_grid, t_grid, prob = eqn
 
-    #test initial condition (should roughly recreate Fig 9.5 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_ftcs.png")
+        #check that probability is conserved
+        if (all([np.abs(i - prob[0]) < 1e-10 for i in prob])):
+            print("Probability is conserved")
+        else:
+            print("Probability is not conserved")
 
-    #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
-    sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_ftcs")
+        #test initial condition (should roughly recreate Fig 9.5 in NM4P)
+        sch_plot(ttplot, x_grid, t_grid, 0, file="Schultz_Liam_Fig_9.5_crank.png")
 
-    #test psi animation to observe transmission and reflection of the wave
-    #sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", file="Schultz_Liam_Psi_Animation.gif", animate=True)
+        #test probability density (should look like one of the lines from Fig 9.6 in NM4P)
+        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Fig_9.6_crank")
 
-    #same with probability density
-    #sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Prob_Animation.gif", animate=True)
+        #test psi animation to observe transmission and reflection of the wave
+        sch_plot(ttplot, x_grid, t_grid, 0, graph="psi", file="Schultz_Liam_Psi_Animation_crank.gif", animate=True)
+
+        #same with probability density
+        sch_plot(ttplot, x_grid, t_grid, 0, graph="prob", file="Schultz_Liam_Prob_Animation_crank", animate=True)
+
+test()
